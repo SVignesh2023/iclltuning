@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "iclltuning"
+version = "1.0.0"
+dependencies = [
+  "pandas",
+  "numpy",
+  "scipy"
+]
+authors = [
+  { name = "Vignesh Shanmugasundaram", email= "vigneshh2000@gmail.com" }
+]
+maintainers=[
+  {name = "Vignesh Shanmugasundaram", email = "vigneshh2000@gmail.com" }
+]
+description = "Hyperparameter Tuning on models present within Imbalanced Classification via Layered Learning (ICLL) method"
+readme = "README.rst"
+requires-python = ">=3.10"
+keywords = ["Machine Learning","Model Training","Hyperparameter Tuning"]
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+cv = ["scikit-learn"]
+smote = ["imbalanced-learn"]
+docs = [
+    "sphinx_rtd_theme",
+    "sphinx"
+]
+
+[project.urls]
+Homepage = "https://github.com/SVignesh2023/iclltuning"
+Documentation = "https://iclltuning.readthedocs.io/en/latest/index.html"
+Issues = "https://github.com/SVignesh2023/iclltuning/issues"
+Changelog = "https://github.com/SVignesh2023/iclltuning/blob/main/CHANGELOG.md"

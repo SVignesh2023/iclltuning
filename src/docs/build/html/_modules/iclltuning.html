@@ -1,0 +1,1081 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iclltuning &mdash; iclltuning 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            iclltuning
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Original_Licence.html">BSD 3-Clause License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../iclltuning.html">iclltuning Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tutorial.html">ICLL Working Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contact.html">Contact</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">iclltuning</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">iclltuning</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for iclltuning</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.cluster.hierarchy</span><span class="w"> </span><span class="kn">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdist</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pandas.api.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_float_dtype</span><span class="p">,</span> <span class="n">is_integer_dtype</span>
+
+
+<div class="viewcode-block" id="iclltuning">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">iclltuning</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This is the class representation of this library. Invoke the methods of this class to perform hyperparameter tuning on the models fed to the Imbalanced Classification via Layered Learning (ICLL) model.</span>
+
+<span class="sd">    **Layer 1** follows the same definition as mentioned within the original paper: &quot;Layer 1 (L1) denotes the event that the observation belongs to the Mixed or Pure Minority Group.&quot;</span>
+<span class="sd">    </span>
+<span class="sd">    **Layer 2** follows the same definition as mentioned within the original paper: &quot;Given that L1 occurs (i.e. observation belongs to the mixed or pure minority group), Layer 2 (L2) denotes the event that the observation belongs to the pure minority class.&quot;</span>
+<span class="sd">    </span>
+<span class="sd">    :param model_l1: ML model to be fit on **Layer 1**. A model must be passed if you don&#39;t want hyperparameter tuning to be performed on **Layer 1** task. </span>
+
+<span class="sd">        |</span>
+<span class="sd">        | **Requirements:**</span>
+
+<span class="sd">        1. This model must have a callable :py:meth:`!fit` method.</span>
+<span class="sd">        2. This model must have a callable :py:meth:`!predict` in the case of hard classification or :py:meth:`!predict_proba` in the case of soft classification. Either one provided is fine.</span>
+<span class="sd">        </span>
+<span class="sd">        |</span>
+<span class="sd">        | In the situation where both the model and cross-validation object are both provided, the model assigned to the cross-validation object will take precedence in the ICLL algorithm.</span>
+<span class="sd">    :type model_l1: object, **optional**</span>
+
+<span class="sd">    :param model_l2: ML model to be fit on **Layer 2**. A model must be passed if you don&#39;t want hyperparameter tuning to be performed on **Layer 2** task. </span>
+<span class="sd">    </span>
+<span class="sd">        |</span>
+<span class="sd">        | **Requirements:**</span>
+
+<span class="sd">        1. This model must have a callable :py:meth:`!fit` method.</span>
+<span class="sd">        2. This model must have a callable :py:meth:`!predict` in the case of hard classification or :py:meth:`!predict_proba` in the case of soft classification. Either one provided is fine.</span>
+<span class="sd">        </span>
+<span class="sd">        |</span>
+<span class="sd">        | In the situation where both the model and cross-validation object are both provided, the model assigned to the cross-validation object will take precedence in the ICLL algorithm.</span>
+<span class="sd">    :type model_l2: object, **optional**</span>
+
+<span class="sd">    :param cv_obj_l1: :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object to be fit on **Layer 1**.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            :py:attr:`refit` parameter of the :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object **must NOT be initialized with a value of False**. If it is instantiated a value of False, then the **ICLL model will NOT be trained**, and a :py:exc:`ValueError` will be raised instead.</span>
+
+<span class="sd">    :type cv_obj_l1: :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object, **optional**</span>
+
+<span class="sd">    :param cv_obj_l2: :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object to be fit on **Layer 2**.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            :py:attr:`refit` parameter of the :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object **must be NOT be initialized with a value of False**. If it is instantiated a value of False, then the **ICLL model will NOT be trained**, and a :py:exc:`ValueError` will be raised instead.</span>
+
+<span class="sd">    :type cv_obj_l2: :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object, **optional**</span>
+
+<span class="sd">    :param smote_obj_l1: SMOTE object to be passed for resampling on **Layer 1**.</span>
+<span class="sd">    :type smote_obj_l1: :py:class:`imblearn.over_sampling._smote.base.SMOTE`, **optional**</span>
+
+<span class="sd">    :param smote_obj_l2: SMOTE object to be passed for resampling on **Layer 2**.</span>
+<span class="sd">    :type smote_obj_l2: :py:class:`imblearn.over_sampling._smote.base.SMOTE`, **optional**</span>
+
+<span class="sd">    :param sample_wt_l1: Array of sample weights to be assigned for **Layer 1** training task. </span>
+<span class="sd">        </span>
+<span class="sd">        .. note::</span>
+
+<span class="sd">            1. If :py:attr:`cv_obj_l1` parameter is passed, then hyperparameter tuning will be carried out with sample weights passed, and as a result, the best estimator as found out by :py:attr:`cv_obj_l1` will be trained with the provided sample weights. Note that both the :py:attr:`cv_obj_l1` object and its attached estimator must both have the :py:attr:`sample_weight` attribute for the :py:meth:`!fit` method. **Otherwise, hyperparameter tuning will be carried out without supplying the sample weights.**</span>
+<span class="sd">            2. If :py:attr:`cv_obj_l1` parameter is not passed, then :py:attr:`model_l1` parameter will be trained with sample weights of :py:attr:`sample_wt_l1`. Note that the estimator must have the :py:attr:`sample_weight` attribute for the :py:meth:`!fit` method. **Otherwise, estimator training will be carried out wihtout supplying the sample weights.**</span>
+<span class="sd">            3. If both parameters :py:attr:`smote_obj_l1` and :py:attr:`sample_wt_l1` are passed, then resampling will **NOT be performed on Layer 1**, and sample weights will be passed during model training/ hyperparameter tuning.</span>
+
+<span class="sd">    :type sample_wt_l1: numpy.ndarray/ List / Pandas Series, **optional**</span>
+
+<span class="sd">    :param sample_wt_l2: Array of sample weights to be assigned for **Layer 2** training task. </span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            1. If :py:attr:`cv_obj_l2` parameter is passed, then hyperparameter tuning will be carried out with sample weights passed, and as a result, the best estimator as found out by :py:attr:`cv_obj_l2` will be trained with the provided sample weights. Note that both the :py:attr:`cv_obj_l2` object and its attached estimator must both have the :py:attr:`sample_weight` attribute for the :py:meth:`!fit` method. **Otherwise, hyperparameter tuning will be carried out wihtout supplying the sample weights.**</span>
+<span class="sd">            2. If :py:attr:`cv_obj_l2` parameter is not passed, then :py:attr:`model_l2` parameter will be trained with sample weights of :py:attr:`sample_wt_l2`. Note that the estimator must have the :py:attr:`sample_weight` attribute for the :py:meth:`!fit` method. **Otherwise, estimator training will be carried out wihtout supplying the sample weights.**</span>
+<span class="sd">            3. If both parameters :py:attr:`smote_obj_l2` and :py:attr:`sample_wt_l2` are passed, then resampling will **NOT be performed on Layer 2**, and sample weights will be passed during model training/ hyperparameter tuning.</span>
+
+<span class="sd">            |</span>
+<span class="sd">            | **IMPORTANT**</span>
+
+<span class="sd">            In ICLL algorithm, **Layer 2** is trained to distinguish instances belonging to Mixed clusters from those belonging to Pure Minority clusters. Instances assigned to Pure Majority clusters are excluded from the training process in this layer. Consequently, only the sample weights corresponding to instances in Mixed or Pure Minority clusters are passed to the estimator or the :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object in **Layer 2**.</span>
+
+<span class="sd">            **WARNING**: Only use this parameter if you fully understand its effect on the training process.</span>
+
+<span class="sd">    :type sample_wt_l2: numpy.ndarray/ List / Pandas Series, **optional**</span>
+
+<span class="sd">    :param custom_distance_threshold: Provide a value for this parameter if you want to override the original implementation of the computation of distance threshold (flat clusters are obtained at a threshold of the log-transformed intra-cluster distance of **µ + σ**)</span>
+<span class="sd">    :type custom_distance_threshold: float, **optional**</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">model_l1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">model_l2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cv_obj_l1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cv_obj_l2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">smote_obj_l1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">smote_obj_l2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">sample_wt_l1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">sample_wt_l2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">custom_distance_threshold</span><span class="o">=</span><span class="kc">None</span>
+                 <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor of the class iclltuning</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span> <span class="o">=</span> <span class="n">model_l1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span> <span class="o">=</span> <span class="n">model_l2</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span> <span class="o">=</span> <span class="n">cv_obj_l1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span> <span class="o">=</span> <span class="n">cv_obj_l2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l1</span> <span class="o">=</span> <span class="n">smote_obj_l1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l2</span> <span class="o">=</span> <span class="n">smote_obj_l2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span> <span class="o">=</span> <span class="n">sample_wt_l1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span> <span class="o">=</span> <span class="n">sample_wt_l2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__custom_distance_threshold</span> <span class="o">=</span> <span class="n">custom_distance_threshold</span>
+
+        <span class="c1"># Initialize model variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer1_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer2_model</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Initialize status of boolean variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1_bool</span><span class="o">=</span><span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2_bool</span><span class="o">=</span><span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__apply_resample_l1</span><span class="o">=</span><span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__apply_resample_l2</span><span class="o">=</span><span class="kc">False</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__layer_1_training</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">layer_wt</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Private class method to train the model assigned to Layer 1.</span>
+
+<span class="sd">        :param X: Independent variables data found by clustering assigned in Layer 1 for model training</span>
+<span class="sd">        :type X: Pandas DataFrame or numpy.ndarray</span>
+
+<span class="sd">        :param y: Target variable. Target variable values must be in 1/0 format</span>
+<span class="sd">        :type y: Pandas Series or numpy.ndarray</span>
+
+<span class="sd">        :return: Returns None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        </span>
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check whether a cross-validation object is provided</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1_bool</span><span class="p">:</span>
+            <span class="n">sig_cv</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span>
+            <span class="n">sig_model</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;sample_weight&quot;</span> <span class="ow">in</span> <span class="n">sig_cv</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;sample_weight&quot;</span> <span class="ow">in</span> <span class="n">sig_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">sample_weight</span><span class="o">=</span><span class="n">layer_wt</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+                    
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check if the model has a parameter of &#39;sample_weight&#39; present in fit()</span>
+            <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;sample_weight&quot;</span> <span class="ow">in</span> <span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">sample_weight</span><span class="o">=</span><span class="n">layer_wt</span><span class="p">)</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+        
+        <span class="n">end</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__l1_time</span><span class="o">=</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__layer_2_training</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">layer_wt</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Private class method to train the model assigned to Layer 2.</span>
+
+<span class="sd">        :param X: Independent variables data found by clustering assigned in Layer 2 for model training</span>
+<span class="sd">        :type X: Pandas DataFrame or numpy.ndarray</span>
+
+<span class="sd">        :param y: Target variable. Target variable values must be in 1/0 format</span>
+<span class="sd">        :type y: Pandas Series or numpy.ndarray</span>
+
+<span class="sd">        :return: Returns None</span>
+<span class="sd">        :rtype: None</span>
+
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check whether a cross-validation object is provided</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2_bool</span><span class="p">:</span>
+            <span class="n">sig_cv</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span>
+            <span class="n">sig_model</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;sample_weight&quot;</span> <span class="ow">in</span> <span class="n">sig_cv</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;sample_weight&quot;</span> <span class="ow">in</span> <span class="n">sig_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">sample_weight</span><span class="o">=</span><span class="n">layer_wt</span><span class="p">)</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check if the model has a parameter of &#39;sample_weight&#39; present in fit()</span>
+            <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;sample_weight&quot;</span> <span class="ow">in</span> <span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">sample_weight</span><span class="o">=</span><span class="n">layer_wt</span><span class="p">)</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="n">end</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__l2_time</span><span class="o">=</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__three_way_grouping</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">clusters</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This is a private class method which determines which cluster is an instance a part of (minority/ majority and mixed).</span>
+
+<span class="sd">        :param clusters: A nested list which contains instances belonging to which clusters as obtained by hierarchical clustering</span>
+<span class="sd">        :type clusters: list</span>
+
+<span class="sd">        :param y: Class label of instances</span>
+<span class="sd">        :type y: numpy.ndarray</span>
+
+<span class="sd">        :return c_mix_all_ind: Indices of the observations which belong to either the mixed or minority clusters</span>
+<span class="sd">        :rtype: numpy.ndarray</span>
+
+<span class="sd">        :return cluster_summary_dict: A dictionary which indicates count of observations which belong to majority/minority/mixed clusters.</span>
+<span class="sd">        :rtype: dict</span>
+
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># c_maj_list = list of clusters containing pure negative class instances (c_maj)</span>
+        <span class="c1"># c_min_list = list of clusters containing pure positive class instances (c_min)</span>
+        <span class="c1"># c_mix_list = list of clusters containing mix of positive and negative class instances (c_mix)</span>
+        <span class="n">c_maj_list</span><span class="p">,</span> <span class="n">c_min_list</span><span class="p">,</span> <span class="n">c_mix_list</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="c1"># Loop through individual clusters</span>
+        <span class="k">for</span> <span class="n">clst</span> <span class="ow">in</span> <span class="n">clusters</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Get the corresponding target label of each instance in that cluster</span>
+                <span class="n">y_clt</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">clst</span><span class="p">)]</span>
+
+                <span class="c1"># Get a dictionary with key as 0/1 and value as the count of instances belonging to 0/1</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">Counter</span><span class="p">(</span><span class="n">y_clt</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c1"># Since dictionary length is 1, which means that the cluster is a c_maj or c_min cluster</span>
+                    <span class="c1"># So, all elements must belong to only one class label, which is why it is sufficient enough to check the first element of the list y_clt</span>
+                    <span class="k">if</span> <span class="n">y_clt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">c_maj_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clst</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">c_min_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clst</span><span class="p">)</span>
+
+                <span class="c1"># Dictionary length is 2, which means the cluster is c_mix</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">c_mix_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clst</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Error when creating three-way groups.&#39;</span><span class="p">)</span>
+
+        <span class="n">cluster_summary_dict</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;MAJORITY_CLUSTER_COUNT&#39;</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">c_maj_list</span><span class="p">),</span>
+            <span class="s1">&#39;MINORITY_CLUSTER_COUNT&#39;</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">c_min_list</span><span class="p">),</span>
+            <span class="s1">&#39;MIXED_CLUSTER_COUNT&#39;</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">c_mix_list</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Create a 1-D array of the indices of all instances which belong to c_mix. np.concatenate() returns a 1-D flattened array, and np.sort() sorts the indices in ascending order</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_mix_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">c_mix_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">c_mix_list</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">c_mix_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_min_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">c_min_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">c_min_list</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">c_min_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="c1"># Get the indices of the observations which belong to either the c_mix or c_min clusters</span>
+        <span class="n">c_mix_all_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">c_mix_ind</span><span class="p">,</span><span class="n">c_min_ind</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">c_mix_all_ind</span><span class="p">,</span><span class="n">cluster_summary_dict</span>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__clustering</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">custom_distance_threshold</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform agglomerative heirarchical clustering on the given data.</span>
+
+<span class="sd">        Calculation Notes:</span>
+<span class="sd">        pdist() calculates the pairwise euclidean distance between observations. </span>
+<span class="sd">        </span>
+<span class="sd">        Let &#39;m&#39; be the number of observations.</span>
+<span class="sd">        Since a distance matrix is usually a 2D m x m matrix, it is avoided and instead only the upper triangular matrix is stored, discarding all symmetric elements.</span>
+
+<span class="sd">        The length of the array will then be m*(m-1)/2.</span>
+<span class="sd">        </span>
+<span class="sd">        :param X: Independent variables data on which agglomerative heirarchical clustering will be performed.</span>
+<span class="sd">        :type X: Pandas DataFrame or numpy.ndarray</span>
+
+<span class="sd">        :param custom_distance_threshold: A user provided threshold to get the cut-off distance at which the final set of flat clusters would be formed.</span>
+<span class="sd">        :type custom_distance_threshold: float, **optional**</span>
+
+<span class="sd">        :return clusters: Clusters of indices of data observations</span>
+<span class="sd">        :rtype clusters: numpy.ndarray</span>
+
+<span class="sd">        :return original_distance: Log-transformed intra-cluster distance of µ + σ. This would be the cut-off for obtaining flat clsuters.</span>
+<span class="sd">        :rtype original_distance: float</span>
+
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">pdist</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>  <span class="c1"># PAIRWISE DISTANCE BETWEEN INSTANCES</span>
+
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;ward&#39;</span><span class="p">)</span>  <span class="c1"># calculate the instances links for the agglomerative clustering</span>
+
+        <span class="n">Z</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">Z</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">sZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">Z</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># standard deviation of the distance between each cluster linkage</span>
+        <span class="n">mZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Z</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># mean of the distance between each cluster linkage</span>
+
+        <span class="n">original_distance</span><span class="o">=</span> <span class="n">sZ</span><span class="o">+</span><span class="n">mZ</span>
+
+        <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">custom_distance_threshold</span><span class="p">):</span>
+            <span class="n">cut_off_distance</span> <span class="o">=</span> <span class="n">original_distance</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cut_off_distance</span><span class="o">=</span><span class="n">custom_distance_threshold</span>
+
+        <span class="n">clustLabs</span> <span class="o">=</span> <span class="n">fcluster</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">cut_off_distance</span><span class="p">,</span><span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span>  <span class="c1"># for the clusters using merger distance threshold as mZ+stds*sZ</span>
+
+        <span class="c1">#: &#39;clusters&#39; variable is a list of list. The number of elements in the &#39;clusters&#39; variable is equal to the number of clusters formed.</span>
+        <span class="c1">#: Each nested list houses the indices of the observation belonging to that particular cluster. Egs: Cluster 1 has observations whose indices are [3,7].</span>
+        <span class="n">clusters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">clustLabs</span><span class="p">):</span>  <span class="c1"># produce a clusters data structure to work with</span>
+            <span class="n">clusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">clustLabs</span> <span class="o">==</span> <span class="n">lab</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">clusters</span><span class="p">,</span><span class="n">original_distance</span>
+
+
+<div class="viewcode-block" id="iclltuning.fit">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning.fit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit the ICLL model on your dataset.</span>
+
+<span class="sd">        :param X: Independent variables data for model training</span>
+
+<span class="sd">            .. note::</span>
+
+<span class="sd">                Since the first step of ICLL model is to perform the agglomerative hierarchical clustering, it is expected that all elements of :py:attr:`X` will only contain **non-null integer or floating** data types. Failure to adhere to this will result in a :py:exc:`ValueError` being raised instead.</span>
+
+<span class="sd">        :type X: Pandas DataFrame or numpy.ndarray</span>
+
+<span class="sd">        :param y: Target variable. Target variable values must be in 1/0 format</span>
+<span class="sd">        :type y: Pandas Series or numpy.ndarray</span>
+
+<span class="sd">        :return: Fitted estimator.</span>
+<span class="sd">        :rtype: Object</span>
+
+<span class="sd">        :meta public:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Set initial status of boolean variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dual_model</span><span class="o">=</span><span class="kc">False</span>
+
+        <span class="c1"># Set initial values of core variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__computed_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span> <span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;MAJORITY_CLUSTER_COUNT&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+            <span class="s1">&#39;MINORITY_CLUSTER_COUNT&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+            <span class="s1">&#39;MIXED_CLUSTER_COUNT&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__l1_time</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__l2_time</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer1_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer2_model</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+        <span class="c1"># Perform checks to ensure that the class object has been initialized with correct attribute datatypes</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;GridSearchCV&quot;</span><span class="p">,</span><span class="s2">&quot;RandomizedSearchCV&quot;</span><span class="p">])</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value for parameter &#39;cv_obj_l1&#39;. This parameter only accepts an object from class &#39;GridSearchCV&#39; or &#39;RandomizedSearchCV&#39;. This parameter can also accept None if hyperparameter tuning on Layer 1 model is not desired.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1_bool</span><span class="o">=</span><span class="kc">True</span>
+
+                <span class="c1"># Check if refit parameter is initialized with False</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="o">.</span><span class="n">refit</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;refit&#39; parameter in &#39;cv_obj_l1&#39; MUST NOT be initialized with a value of False!&quot;</span><span class="p">)</span>
+
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;GridSearchCV&quot;</span><span class="p">,</span><span class="s2">&quot;RandomizedSearchCV&quot;</span><span class="p">])</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value for parameter &#39;cv_obj_l2&#39;. This parameter only accepts an object from class &#39;GridSearchCV&#39; or &#39;RandomizedSearchCV&#39;. This parameter can also accept None if hyperparameter tuning on Layer 2 model is not desired.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2_bool</span><span class="o">=</span><span class="kc">True</span>
+
+                <span class="c1"># Check if refit parameter is initialized with False</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="o">.</span><span class="n">refit</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;refit&#39; parameter in &#39;cv_obj_l2&#39; MUST NOT be initialized with a value of False!&quot;</span><span class="p">)</span>
+
+
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span><span class="p">,</span> <span class="s2">&quot;fit&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span><span class="o">.</span><span class="n">fit</span><span class="p">))</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model to be trained on Layer 1 does not have a callable fit(X,y) method&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1_bool</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both parameters &#39;model_l1&#39; and &#39;cv_obj_l1&#39; for Layer 1 task are empty! Atleast one should be provided.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span><span class="p">,</span> <span class="s2">&quot;fit&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span><span class="o">.</span><span class="n">fit</span><span class="p">))</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model to be trained on Layer 2 does not have a callable fit(X,y) method&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2_bool</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both parameters &#39;model_l2&#39; and &#39;cv_obj_l2&#39; for Layer 2 task are empty! Atleast one should be provided.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l1</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="o">==</span><span class="s2">&quot;SMOTE&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l1</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Resampling method for layer 1 does not belong to imblearn package -&gt; SMOTE. This parameter can also accept None if resampling tuning on Layer 1 training data is not desired.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__apply_resample_l1</span><span class="o">=</span><span class="kc">True</span>
+
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l2</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="o">==</span><span class="s2">&quot;SMOTE&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l2</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Resampling method for layer 2 does not belong to imblearn package -&gt; SMOTE. This parameter can also accept None if resampling tuning on Layer 2 training data is not desired.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l2</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__apply_resample_l2</span><span class="o">=</span><span class="kc">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;sample_wt_l1&#39; is not a List/numpy.ndarray/Pandas Series data type. This parameter can also accept None if no sample weights are to be assigned during model training of Layer 1.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;sample_wt_l1&#39; must be one-dimensional.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Override resampling on Layer 1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__apply_resample_l1</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;sample_wt_l2&#39; is not a List/numpy.ndarray/Pandas Series data type. This parameter can also accept None if no sample weights are to be assigned during model training of Layer 2.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;sample_wt_l2&#39; must be one-dimensional.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Override resampling on Layer 2</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__apply_resample_l2</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;X&#39; is not a Pandas Dataframe or a numpy.ndarray datatype!&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;y&#39; is not a Pandas Series or a numpy.ndarray datatype!&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__custom_distance_threshold</span><span class="p">,(</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">))</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__custom_distance_threshold</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;custom_distance_threshold&#39; is not an integer or float datatype. This parameter can also accept None if the originally computed intra-cluster distance is to be retained.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check if a negative / zero distance is passed</span>
+        <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__custom_distance_threshold</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__custom_distance_threshold</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__custom_distance_threshold</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;custom_distance_threshold&#39; must contain a positive, non-zero finite value!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Convert pandas series (if given) to numpy array</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;X and y must contain the same number of samples; got </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> samples in X and </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> in y.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;X&#39; must be two-dimensional and contain at least one feature!&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;X&#39; must contain at least two samples!&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Check if y contains more than one dimension.</span>
+        <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;y&#39; must be one-dimensional.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check if the pandas dataframe/ numpy array of X contains integer and floating datatypes only</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="c1"># Check if all cells have integer or float values</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_integer_dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span> <span class="ow">or</span> <span class="n">is_float_dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span> <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">X</span><span class="o">.</span><span class="n">dtypes</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All values in &#39;X&#39; must have integer or float dtypes!&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check if &#39;X&#39; only contains finite values</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;X&#39; must not contain any missing or infinite values!&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;iuf&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All values in &#39;X&#39; must have integer or float dtypes!&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check if &#39;X&#39; only contains finite values</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;X&#39; must not contain any missing or infinite values!&quot;</span><span class="p">)</span>
+
+
+        <span class="c1"># Check if y contains only labels of 0 and 1.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;y&#39; must contain both binary class labels 0 and 1.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If self.__sample_wt_l1 is passed, then check if the length is the same as the length of &#39;X&#39;</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span><span class="p">)</span><span class="o">!=</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sample_wt_l1 and X must contain the same number of samples; got </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> samples in X and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span><span class="p">)</span><span class="si">}</span><span class="s2"> in sample_wt_l1.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If self.__sample_wt_l2 is passed, then check if the length is the same as the length of &#39;X&#39;</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span><span class="p">)</span><span class="o">!=</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sample_wt_l2 and X must contain the same number of samples; got </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> samples in X and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span><span class="p">)</span><span class="si">}</span><span class="s2"> in sample_wt_l2.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Perform clustering</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__clusters</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__computed_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clustering</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__custom_distance_threshold</span><span class="p">)</span>
+
+        <span class="c1"># Perform grouping of instances</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__all_ind_arr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__three_way_grouping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clusters</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+        <span class="c1"># Case 1: The base case. All types of clusters are formed.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MAJORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MIXED_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MINORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">=</span> <span class="s1">&#39;C1&#39;</span>
+
+        <span class="c1"># Case 2: No pure majority clusters are formed.</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MAJORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MIXED_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MINORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">=</span> <span class="s1">&#39;C2&#39;</span>
+
+        <span class="c1"># Case 3: No mixed clusters are formed.</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MAJORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MIXED_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MINORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">=</span> <span class="s1">&#39;C3&#39;</span>
+
+        <span class="c1"># Case 4: No pure minority clusters are formed</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MAJORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MIXED_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MINORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">=</span> <span class="s1">&#39;C4&#39;</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No pure minority clusters was formed! ICLL model training will carry on as usual.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Case 5: Only mixed clusters are formed</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MAJORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MIXED_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span><span class="p">[</span><span class="s1">&#39;MINORITY_CLUSTER_COUNT&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">=</span> <span class="s1">&#39;C5&#39;</span>
+
+        <span class="c1"># Case 6: Base case (will never happen)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">=</span> <span class="s1">&#39;C6&#39;</span>
+
+        <span class="c1"># Raise warnings and stop ICLL model training if case &#39;C2&#39; arises</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">==</span> <span class="s1">&#39;C2&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No pure majority clusters were formed! Try to instantiate ICLL again by providing a new distance threshold for parameter &#39;custom_distance_threshold&#39;. The computed distance threshold is in this run is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__computed_distance</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Raise warnings and stop model training if case &#39;C3&#39; arises</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">==</span> <span class="s1">&#39;C3&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No mixed clusters were formed! Since heirarchical clustering was able to seperate both classes effectively, so the ICLL model approach for this predictive task is redundant.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Raise warnings and stop model training if case &#39;C5&#39; arises</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">==</span> <span class="s1">&#39;C5&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Only a mixed cluster was formed! ICLL model training will not carry on further.&quot;</span><span class="p">)</span>
+
+        <span class="c1">#This block will never trigger</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__decisive_action</span> <span class="o">==</span> <span class="s1">&#39;C6&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;only a single type of pure majority/ pure mixed/ pure minority cluster was formed!  ICLL model training will not carry on further.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Continue with ICLL model training as usual</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># Since __all_ind_arr variable contains indices of observations belonging to either c_mix or c_min clusters, those observations are tagged as 1 for L1 predictive task</span>
+            <span class="c1"># The observations belonging to the majority class can get their label flipped from 0 to 1 if they belong to a c_mix cluster.</span>
+            <span class="n">y_l1</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">y_l1</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__all_ind_arr</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__apply_resample_l1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__layer_1_training</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y_l1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">X_L1</span><span class="p">,</span> <span class="n">y_L1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l1</span><span class="o">.</span><span class="n">fit_resample</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y_l1</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__layer_1_training</span><span class="p">(</span><span class="n">X_L1</span><span class="p">,</span> <span class="n">y_L1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span><span class="p">)</span>
+
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer 1 SMOTE failed due to: (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2"> Performing model fit of Layer 1 without resampling...&quot;</span><span class="p">,</span>
+                        <span class="ne">RuntimeWarning</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__layer_1_training</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y_l1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="n">X_l2</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__all_ind_arr</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">X_l2</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__all_ind_arr</span><span class="p">]</span>
+
+            <span class="n">y_l2</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__all_ind_arr</span><span class="p">]</span>
+
+            <span class="c1"># Choose only the corresponding sample weights of instances in Layer 2 (ie: instances belonging to Mixed and Pure Minority)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">modded_sample_wt_l2</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">modded_sample_wt_l2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sample_wt_l2</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__all_ind_arr</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__apply_resample_l2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__layer_2_training</span><span class="p">(</span><span class="n">X_l2</span><span class="p">,</span> <span class="n">y_l2</span><span class="p">,</span><span class="n">modded_sample_wt_l2</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">X_L2</span><span class="p">,</span> <span class="n">y_L2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__smote_obj_l2</span><span class="o">.</span><span class="n">fit_resample</span><span class="p">(</span><span class="n">X_l2</span><span class="p">,</span> <span class="n">y_l2</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__layer_2_training</span><span class="p">(</span><span class="n">X_L2</span><span class="p">,</span> <span class="n">y_L2</span><span class="p">,</span><span class="n">modded_sample_wt_l2</span><span class="p">)</span>
+
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer 2 SMOTE failed due to: (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2"> Performing model fit of Layer 2 without resampling...&quot;</span><span class="p">,</span>
+                        <span class="ne">RuntimeWarning</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__layer_2_training</span><span class="p">(</span><span class="n">X_l2</span><span class="p">,</span> <span class="n">y_l2</span><span class="p">,</span><span class="n">modded_sample_wt_l2</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1_bool</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer1_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span><span class="o">.</span><span class="n">best_estimator_</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer1_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l1</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2_bool</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer2_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span><span class="o">.</span><span class="n">best_estimator_</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer2_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__model_l2</span>
+
+            <span class="c1"># Since both the models have finished training, update the status</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__dual_model</span> <span class="o">=</span> <span class="kc">True</span>
+            
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__layer_validator</span><span class="p">(</span><span class="n">layer_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This function is to simply check whether the input is of a string datatype and the value is either &#39;L1&#39; or &#39;L2&#39;</span>
+
+<span class="sd">        :param layer_name: The layer for which functionalities must be accessed</span>
+<span class="sd">        :type layer_name: str</span>
+
+<span class="sd">        :return: Function will return True if the check is passed</span>
+<span class="sd">        :rtype: bool</span>
+
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;layer_name&#39; is not of a string datatype!&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">layer_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;L1&#39;</span><span class="p">,</span><span class="s1">&#39;L2&#39;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Acceptable values for &#39;layer_name&#39; parameter is only &#39;L1&#39; or &#39;L2&#39;! Please specify the proper layer name!&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__positive_class_probability</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A validation function for getting the prediction probabilities of an estimator.</span>
+
+<span class="sd">        :param estimator: The particular estimator of the layer for which we want probabilistic predictions.</span>
+<span class="sd">        :type estimator: Object</span>
+
+<span class="sd">        :param X_test: The test dataset over which probabilistic predictions are to be made</span>
+<span class="sd">        :type X_test: Pandas DataFrame or numpy.ndarray</span>
+
+<span class="sd">        :param layer_name: The name of the layer for which validation is to be carried out.</span>
+<span class="sd">        :type layer_name: string</span>
+
+<span class="sd">        :return: Probability of the sample for belonging to the **positive class**</span>
+<span class="sd">        :rtype: numpy.ndarray</span>
+
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check whether the &#39;classes_&#39; method exists and can be called for the models in both the layers</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="s2">&quot;classes_&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">classes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2"> estimator does not expose fitted classes_.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check whether the &#39;predict_proba&#39; method exists and can be called for the models in both the layers</span>
+        <span class="n">predict_proba</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="s2">&quot;predict_proba&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">predict_proba</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Estimator for </span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2"> must have a callable predict_proba() method!&quot;</span><span class="p">)</span>
+
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+        <span class="n">probabilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_test</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">classes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">classes</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2"> estimator must be fitted with binary classes 0 and 1.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">probabilities</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">probabilities</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">classes</span><span class="o">.</span><span class="n">size</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2"> estimator returned an unexpected probability shape.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Store the indices of the array of only the positive class</span>
+        <span class="n">positive_columns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">classes</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># np.ndarray.size returns the count of elements throughout the entire array</span>
+        <span class="k">if</span> <span class="n">positive_columns</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+
+            <span class="c1"># positive_columns[0] is guaranteed to return the probabilities of only the positive class</span>
+            <span class="k">return</span> <span class="n">probabilities</span><span class="p">[:,</span> <span class="n">positive_columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2"> estimator must have exactly one probability column for class 1.&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="iclltuning.predict">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning.predict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Predict class labels for samples in X.</span>
+
+<span class="sd">        This class method is only valid when both the models for **Layer 1** and **Layer 2** training have a valid :py:meth:`!predict` method.</span>
+<span class="sd">        </span>
+<span class="sd">        Let :math:`f_{L1}(x_i)` and :math:`f_{L2}(x_i)` denote the models trained in the layers L1 and L2, respectively. The the prediction by ICLL model is given by: :math:`f_{L1}(x_i) \cdot f_{L2}(x_i)`</span>
+
+<span class="sd">        Thus, a sample instance would only receive a predicted class label of 1 only when the predicted class label of that instance for both the models :math:`f_{L1}(x_i)` and :math:`f_{L2}(x_i)` is 1.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            </span>
+<span class="sd">            The ICLL method :py:meth:`predict` will not work if any of the following scenarios arise by clustering:</span>
+<span class="sd">        </span>
+<span class="sd">            | **Scenario 1**: No pure majority clusters are formed.</span>
+<span class="sd">            | **Scenario 2**: No mixed clusters are formed.</span>
+<span class="sd">            | **Scenario 3**: Only mixed clusters are formed.</span>
+
+<span class="sd">            A :py:exc:`ValueError` will be raised instead if any of the above three scenarios is encountered.</span>
+
+<span class="sd">        :param X: The data matrix for which we want to get the predictions.</span>
+<span class="sd">        :type X: Pandas DataFrame or numpy.ndarray</span>
+
+<span class="sd">        :return: Vector containing the class labels for each sample. This would be an ndarray of shape (n_samples,)</span>
+<span class="sd">        :rtype: numpy.ndarray</span>
+
+<span class="sd">        :meta public:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check whether the &#39;predict&#39; method exists and can be called for the models in both the layers</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__final_layer1_model</span><span class="p">,</span> <span class="s2">&quot;predict&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Estimator in Layer 1 must have a callable predict() method!&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__final_layer2_model</span><span class="p">,</span> <span class="s2">&quot;predict&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Estimator in Layer 2 must have a callable predict() method!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Situation where the fitted models are available on both the layers</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dual_model</span><span class="p">:</span>
+            <span class="n">yh_l1</span><span class="p">,</span> <span class="n">yh_l2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer1_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer2_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+            <span class="n">yh_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">x1</span> <span class="o">*</span> <span class="n">x2</span> <span class="k">for</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">yh_l1</span><span class="p">,</span> <span class="n">yh_l2</span><span class="p">)])</span>
+
+            <span class="k">return</span> <span class="n">yh_f</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ICLL model has not been trained as clustering produced no pure majority clusters, no mixed clusters, or only mixed clusters.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="iclltuning.predict_proba">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning.predict_proba">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Predict probability estimates.</span>
+
+<span class="sd">        This class method is only valid when both the models for Layer 1 and Layer 2 training have a valid :py:meth:`!predict_proba` method.</span>
+<span class="sd">        </span>
+<span class="sd">        Let :math:`f_{L1}(x_i)` and :math:`f_{L2}(x_i)` denote the models trained in the layers L1 and L2, respectively. The the prediction by ICLL model is given by: :math:`f_{L1}(x_i) \cdot f_{L2}(x_i)`</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            </span>
+<span class="sd">            The ICLL method :py:meth:`predict_proba` will not work if any of the following scenarios arise by clustering:</span>
+<span class="sd">        </span>
+<span class="sd">            | **Scenario 1**: No pure majority clusters are formed.</span>
+<span class="sd">            | **Scenario 2**: No mixed clusters are formed.</span>
+<span class="sd">            | **Scenario 3**: Only mixed clusters are formed.</span>
+
+<span class="sd">            A :py:exc:`ValueError` will be raised instead if any of the above three scenarios is encountered.</span>
+
+<span class="sd">            |</span>
+<span class="sd">            | **IMPORTANT**</span>
+
+<span class="sd">            The ICLL model will always return the final probabilities based upon the probabilites of the positive class retured by each layer&#39;s estimator. So, to identify the probabilities returned by the positive class, the estimator corresponding to both the layers must necessarily have a :py:attr:`classes_` attribute.</span>
+<span class="sd">            </span>
+<span class="sd">            If the method does not have a :py:attr:`classes_` attribute, a :py:exc:`ValueError` will be raised instead.</span>
+
+<span class="sd">        :param X: The data matrix for which we want to get the predictions.</span>
+<span class="sd">        :type X: Pandas DataFrame or numpy.ndarray</span>
+
+<span class="sd">        :return: Probability of the sample for belonging to the **positive class**</span>
+<span class="sd">        :rtype: numpy.ndarray</span>
+
+<span class="sd">        :meta public:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Situation where the fitted models are available on both the layers</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dual_model</span><span class="p">:</span>
+            <span class="n">yh_l1_p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__positive_class_probability</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__final_layer1_model</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="s1">&#39;Layer 1&#39;</span><span class="p">)</span>
+            <span class="n">yh_l2_p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__positive_class_probability</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__final_layer2_model</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="s1">&#39;Layer 2&#39;</span><span class="p">)</span>
+
+            <span class="n">yh_fp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">x1</span> <span class="o">*</span> <span class="n">x2</span> <span class="k">for</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">yh_l1_p</span><span class="p">,</span> <span class="n">yh_l2_p</span><span class="p">)])</span>
+            
+            <span class="k">return</span> <span class="n">yh_fp</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ICLL model has not been trained as clustering produced no pure majority clusters, no mixed clusters, or only mixed clusters.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="iclltuning.get_computed_dist_threshold">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning.get_computed_dist_threshold">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_computed_dist_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the log-transformed intra-cluster distance of **µ + σ**</span>
+
+<span class="sd">        :return: log-transformed intra-cluster distance of **µ + σ**</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__computed_distance</span></div>
+
+
+
+<div class="viewcode-block" id="iclltuning.get_cluster_type_info">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning.get_cluster_type_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cluster_type_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the count of each type of cluster formed (pure majority, mixed and pure minority).</span>
+
+<span class="sd">        :return: A dictionary where the key is the name of the type of cluster, and its corresponding value is the count of such clusters.</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clustering_info_dict</span></div>
+
+
+    
+<div class="viewcode-block" id="iclltuning.get_layer_search_time">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning.get_layer_search_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_layer_search_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">layer_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pass &#39;L1&#39; to parameter :py:attr:`layer_name` to return the time taken for hyperparameter tuning on Layer 1 when a :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object is provided. </span>
+<span class="sd">        Otherwise, it returns the time taken to train the **Layer 1** model.</span>
+
+<span class="sd">        Pass &#39;L2&#39; to parameter :py:attr:`layer_name` to return the time taken for hyperparameter tuning on Layer 2 when a :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object is provided. </span>
+<span class="sd">        Otherwise, it returns the time taken to train the **Layer 2** model.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            </span>
+<span class="sd">            The ICLL method :py:meth:`get_layer_search_time` will not work if any of the following scenarios arise by clustering:</span>
+<span class="sd">        </span>
+<span class="sd">            | **Scenario 1**: No pure majority clusters are formed.</span>
+<span class="sd">            | **Scenario 2**: No mixed clusters are formed.</span>
+<span class="sd">            | **Scenario 3**: Only mixed clusters are formed.</span>
+
+<span class="sd">            A :py:exc:`ValueError` will be raised instead if any of the above three scenarios is encountered.</span>
+
+<span class="sd">        :param layer_name: The name of the layer for which functionalities are to be accessed.</span>
+<span class="sd">        :type layer_name: str</span>
+
+<span class="sd">        :return: Time measured in seconds.</span>
+<span class="sd">        :rtype: float</span>
+
+<span class="sd">        :meta public:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate parameter &#39;layer_name&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__layer_validator</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span>
+
+        <span class="c1"># Convert to uppercase</span>
+        <span class="n">layer_name</span><span class="o">=</span><span class="n">layer_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="c1"># Situation where both the fitting times are available for access</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dual_model</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">layer_name</span><span class="o">==</span><span class="s1">&#39;L1&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__l1_time</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__l2_time</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ICLL model has not been trained as clustering produced no pure majority clusters, no mixed clusters, or only mixed clusters.&quot;</span><span class="p">)</span>     </div>
+
+
+
+<div class="viewcode-block" id="iclltuning.get_fitted_cv_layer_object">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning.get_fitted_cv_layer_object">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fitted_cv_layer_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">layer_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Specify &#39;L1&#39; or &#39;L2&#39; to parameter :py:attr:`layer_name` to retrieve the fitted object for that layer. If a GridSearchCV/RandomizedSearchCV object was provided, the fitted CV object is returned.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            </span>
+<span class="sd">            The ICLL method :py:meth:`get_fitted_cv_layer_object` will not work if any of the following scenarios arise by clustering:</span>
+<span class="sd">        </span>
+<span class="sd">            | **Scenario 1**: No pure majority clusters are formed.</span>
+<span class="sd">            | **Scenario 2**: No mixed clusters are formed.</span>
+<span class="sd">            | **Scenario 3**: Only mixed clusters are formed.</span>
+
+<span class="sd">            A :py:exc:`ValueError` will be raised instead if any of the above three scenarios is encountered.</span>
+
+<span class="sd">        :param layer_name: The name of the layer for which functionalities are to be accessed.</span>
+<span class="sd">        :type layer_name: str</span>
+
+<span class="sd">        :return: Fitted :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object if provided at the time of object initialization.</span>
+<span class="sd">        :rtype: object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate parameter &#39;layer_name&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__layer_validator</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span>
+
+        <span class="c1"># Convert to uppercase</span>
+        <span class="n">layer_name</span><span class="o">=</span><span class="n">layer_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="c1"># Situation where both the CV objects are available for access</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dual_model</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">layer_name</span><span class="o">==</span><span class="s1">&#39;L1&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1_bool</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;cv_obj_l1&#39; was empty, CV object cannot be accessed!&quot;</span><span class="p">)</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2_bool</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cv_obj_l2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;cv_obj_l2&#39; was empty, CV object cannot be accessed!&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ICLL model has not been trained as clustering produced no pure majority clusters, no mixed clusters, or only mixed clusters.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="iclltuning.get_fitted_model_layer_object">
+<a class="viewcode-back" href="../iclltuning.html#iclltuning.iclltuning.get_fitted_model_layer_object">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_fitted_model_layer_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">layer_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Specify &#39;L1&#39; or &#39;L2&#39; for :py:attr:`layer_name` to retrieve the fitted model from that layer. If the layer uses a :py:obj:`GridSearchCV` or :py:obj:`RandomizedSearchCV` object, the model from :py:attr:`best_estimator_` is returned. Otherwise, the fitted model stored in :py:attr:`model_l1` or :py:attr:`model_l2` is returned.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            </span>
+<span class="sd">            The ICLL method :py:meth:`get_fitted_model_layer_object` will not work if any of the following scenarios arise by clustering:</span>
+<span class="sd">        </span>
+<span class="sd">            | **Scenario 1**: No pure majority clusters are formed.</span>
+<span class="sd">            | **Scenario 2**: No mixed clusters are formed.</span>
+<span class="sd">            | **Scenario 3**: Only mixed clusters are formed.</span>
+
+<span class="sd">            A :py:exc:`ValueError` will be raised instead if any of the above three scenarios is encountered.</span>
+
+<span class="sd">        :param layer_name: The name of the layer for which functionalities are to be accessed.</span>
+<span class="sd">        :type layer_name: str</span>
+
+<span class="sd">        :return: Fitted model</span>
+<span class="sd">        :rtype: object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate parameter &#39;layer_name&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__layer_validator</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span>
+
+        <span class="c1"># Convert to uppercase</span>
+        <span class="n">layer_name</span><span class="o">=</span><span class="n">layer_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="c1"># Situation where both the fitted models are available for access</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dual_model</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">layer_name</span><span class="o">==</span><span class="s1">&#39;L1&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer1_model</span>            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__final_layer2_model</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ICLL model has not been trained as clustering produced no pure majority clusters, no mixed clusters, or only mixed clusters.&quot;</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Vignesh Shanmugasundaram.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

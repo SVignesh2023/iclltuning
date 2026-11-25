@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iclltuning Class &mdash; iclltuning 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ICLL Working Tutorial" href="Tutorial.html" />
+    <link rel="prev" title="BSD 3-Clause License" href="Original_Licence.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            iclltuning
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Original_Licence.html">BSD 3-Clause License</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">iclltuning Class</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#iclltuning.iclltuning"><code class="docutils literal notranslate"><span class="pre">iclltuning</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#iclltuning.iclltuning.fit"><code class="docutils literal notranslate"><span class="pre">iclltuning.fit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iclltuning.iclltuning.predict"><code class="docutils literal notranslate"><span class="pre">iclltuning.predict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iclltuning.iclltuning.predict_proba"><code class="docutils literal notranslate"><span class="pre">iclltuning.predict_proba()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iclltuning.iclltuning.get_computed_dist_threshold"><code class="docutils literal notranslate"><span class="pre">iclltuning.get_computed_dist_threshold()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iclltuning.iclltuning.get_cluster_type_info"><code class="docutils literal notranslate"><span class="pre">iclltuning.get_cluster_type_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iclltuning.iclltuning.get_layer_search_time"><code class="docutils literal notranslate"><span class="pre">iclltuning.get_layer_search_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iclltuning.iclltuning.get_fitted_cv_layer_object"><code class="docutils literal notranslate"><span class="pre">iclltuning.get_fitted_cv_layer_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iclltuning.iclltuning.get_fitted_model_layer_object"><code class="docutils literal notranslate"><span class="pre">iclltuning.get_fitted_model_layer_object()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Tutorial.html">ICLL Working Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">iclltuning</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">iclltuning Class</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/iclltuning.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="iclltuning-class">
+<h1>iclltuning Class<a class="headerlink" href="#iclltuning-class" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="iclltuning.iclltuning">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">iclltuning.</span></span><span class="sig-name descname"><span class="pre">iclltuning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_l1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_l2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv_obj_l1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv_obj_l2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smote_obj_l1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smote_obj_l2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_wt_l1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_wt_l2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_distance_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is the class representation of this library. Invoke the methods of this class to perform hyperparameter tuning on the models fed to the Imbalanced Classification via Layered Learning (ICLL) model.</p>
+<p><strong>Layer 1</strong> follows the same definition as mentioned within the original paper: “Layer 1 (L1) denotes the event that the observation belongs to the Mixed or Pure Minority Group.”</p>
+<p><strong>Layer 2</strong> follows the same definition as mentioned within the original paper: “Given that L1 occurs (i.e. observation belongs to the mixed or pure minority group), Layer 2 (L2) denotes the event that the observation belongs to the pure minority class.”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_l1</strong> (object, <strong>optional</strong>) – <p>ML model to be fit on <strong>Layer 1</strong>. A model must be passed if you don’t want hyperparameter tuning to be performed on <strong>Layer 1</strong> task.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><strong>Requirements:</strong></div>
+</div>
+<ol class="arabic simple">
+<li><p>This model must have a callable <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code> method.</p></li>
+<li><p>This model must have a callable <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict()</span></code> in the case of hard classification or <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_proba()</span></code> in the case of soft classification. Either one provided is fine.</p></li>
+</ol>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line">In the situation where both the model and cross-validation object are both provided, the model assigned to the cross-validation object will take precedence in the ICLL algorithm.</div>
+</div>
+</p></li>
+<li><p><strong>model_l2</strong> (object, <strong>optional</strong>) – <p>ML model to be fit on <strong>Layer 2</strong>. A model must be passed if you don’t want hyperparameter tuning to be performed on <strong>Layer 2</strong> task.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><strong>Requirements:</strong></div>
+</div>
+<ol class="arabic simple">
+<li><p>This model must have a callable <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code> method.</p></li>
+<li><p>This model must have a callable <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict()</span></code> in the case of hard classification or <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_proba()</span></code> in the case of soft classification. Either one provided is fine.</p></li>
+</ol>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line">In the situation where both the model and cross-validation object are both provided, the model assigned to the cross-validation object will take precedence in the ICLL algorithm.</div>
+</div>
+</p></li>
+<li><p><strong>cv_obj_l1</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object, <strong>optional</strong>) – <p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object to be fit on <strong>Layer 1</strong>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">refit</span></code> parameter of the <code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object <strong>must NOT be initialized with a value of False</strong>. If it is instantiated a value of False, then the <strong>ICLL model will NOT be trained</strong>, and a <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised instead.</p>
+</div>
+</p></li>
+<li><p><strong>cv_obj_l2</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object, <strong>optional</strong>) – <p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object to be fit on <strong>Layer 2</strong>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">refit</span></code> parameter of the <code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object <strong>must be NOT be initialized with a value of False</strong>. If it is instantiated a value of False, then the <strong>ICLL model will NOT be trained</strong>, and a <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised instead.</p>
+</div>
+</p></li>
+<li><p><strong>smote_obj_l1</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">imblearn.over_sampling._smote.base.SMOTE</span></code>, <strong>optional</strong>) – SMOTE object to be passed for resampling on <strong>Layer 1</strong>.</p></li>
+<li><p><strong>smote_obj_l2</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">imblearn.over_sampling._smote.base.SMOTE</span></code>, <strong>optional</strong>) – SMOTE object to be passed for resampling on <strong>Layer 2</strong>.</p></li>
+<li><p><strong>sample_wt_l1</strong> (numpy.ndarray/ List / Pandas Series, <strong>optional</strong>) – <p>Array of sample weights to be assigned for <strong>Layer 1</strong> training task.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ol class="arabic simple">
+<li><p>If <code class="xref py py-attr docutils literal notranslate"><span class="pre">cv_obj_l1</span></code> parameter is passed, then hyperparameter tuning will be carried out with sample weights passed, and as a result, the best estimator as found out by <code class="xref py py-attr docutils literal notranslate"><span class="pre">cv_obj_l1</span></code> will be trained with the provided sample weights. Note that both the <code class="xref py py-attr docutils literal notranslate"><span class="pre">cv_obj_l1</span></code> object and its attached estimator must both have the <code class="xref py py-attr docutils literal notranslate"><span class="pre">sample_weight</span></code> attribute for the <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code> method. <strong>Otherwise, hyperparameter tuning will be carried out without supplying the sample weights.</strong></p></li>
+<li><p>If <code class="xref py py-attr docutils literal notranslate"><span class="pre">cv_obj_l1</span></code> parameter is not passed, then <code class="xref py py-attr docutils literal notranslate"><span class="pre">model_l1</span></code> parameter will be trained with sample weights of <code class="xref py py-attr docutils literal notranslate"><span class="pre">sample_wt_l1</span></code>. Note that the estimator must have the <code class="xref py py-attr docutils literal notranslate"><span class="pre">sample_weight</span></code> attribute for the <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code> method. <strong>Otherwise, estimator training will be carried out wihtout supplying the sample weights.</strong></p></li>
+<li><p>If both parameters <code class="xref py py-attr docutils literal notranslate"><span class="pre">smote_obj_l1</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">sample_wt_l1</span></code> are passed, then resampling will <strong>NOT be performed on Layer 1</strong>, and sample weights will be passed during model training/ hyperparameter tuning.</p></li>
+</ol>
+</div>
+</p></li>
+<li><p><strong>sample_wt_l2</strong> (numpy.ndarray/ List / Pandas Series, <strong>optional</strong>) – <p>Array of sample weights to be assigned for <strong>Layer 2</strong> training task.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ol class="arabic simple">
+<li><p>If <code class="xref py py-attr docutils literal notranslate"><span class="pre">cv_obj_l2</span></code> parameter is passed, then hyperparameter tuning will be carried out with sample weights passed, and as a result, the best estimator as found out by <code class="xref py py-attr docutils literal notranslate"><span class="pre">cv_obj_l2</span></code> will be trained with the provided sample weights. Note that both the <code class="xref py py-attr docutils literal notranslate"><span class="pre">cv_obj_l2</span></code> object and its attached estimator must both have the <code class="xref py py-attr docutils literal notranslate"><span class="pre">sample_weight</span></code> attribute for the <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code> method. <strong>Otherwise, hyperparameter tuning will be carried out wihtout supplying the sample weights.</strong></p></li>
+<li><p>If <code class="xref py py-attr docutils literal notranslate"><span class="pre">cv_obj_l2</span></code> parameter is not passed, then <code class="xref py py-attr docutils literal notranslate"><span class="pre">model_l2</span></code> parameter will be trained with sample weights of <code class="xref py py-attr docutils literal notranslate"><span class="pre">sample_wt_l2</span></code>. Note that the estimator must have the <code class="xref py py-attr docutils literal notranslate"><span class="pre">sample_weight</span></code> attribute for the <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code> method. <strong>Otherwise, estimator training will be carried out wihtout supplying the sample weights.</strong></p></li>
+<li><p>If both parameters <code class="xref py py-attr docutils literal notranslate"><span class="pre">smote_obj_l2</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">sample_wt_l2</span></code> are passed, then resampling will <strong>NOT be performed on Layer 2</strong>, and sample weights will be passed during model training/ hyperparameter tuning.</p></li>
+</ol>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><strong>IMPORTANT</strong></div>
+</div>
+<p>In ICLL algorithm, <strong>Layer 2</strong> is trained to distinguish instances belonging to Mixed clusters from those belonging to Pure Minority clusters. Instances assigned to Pure Majority clusters are excluded from the training process in this layer. Consequently, only the sample weights corresponding to instances in Mixed or Pure Minority clusters are passed to the estimator or the <code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object in <strong>Layer 2</strong>.</p>
+<p><strong>WARNING</strong>: Only use this parameter if you fully understand its effect on the training process.</p>
+</div>
+</p></li>
+<li><p><strong>custom_distance_threshold</strong> (float, <strong>optional</strong>) – Provide a value for this parameter if you want to override the original implementation of the computation of distance threshold (flat clusters are obtained at a threshold of the log-transformed intra-cluster distance of <strong>µ + σ</strong>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="iclltuning.iclltuning.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning.fit" title="Link to this definition"></a></dt>
+<dd><p>Fit the ICLL model on your dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Pandas DataFrame</em><em> or </em><em>numpy.ndarray</em>) – <p>Independent variables data for model training</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since the first step of ICLL model is to perform the agglomerative hierarchical clustering, it is expected that all elements of <code class="xref py py-attr docutils literal notranslate"><span class="pre">X</span></code> will only contain <strong>non-null integer or floating</strong> data types. Failure to adhere to this will result in a <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> being raised instead.</p>
+</div>
+</p></li>
+<li><p><strong>y</strong> (<em>Pandas Series</em><em> or </em><em>numpy.ndarray</em>) – Target variable. Target variable values must be in 1/0 format</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fitted estimator.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="iclltuning.iclltuning.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning.predict" title="Link to this definition"></a></dt>
+<dd><p>Predict class labels for samples in X.</p>
+<p>This class method is only valid when both the models for <strong>Layer 1</strong> and <strong>Layer 2</strong> training have a valid <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict()</span></code> method.</p>
+<p>Let <span class="math notranslate nohighlight">\(f_{L1}(x_i)\)</span> and <span class="math notranslate nohighlight">\(f_{L2}(x_i)\)</span> denote the models trained in the layers L1 and L2, respectively. The the prediction by ICLL model is given by: <span class="math notranslate nohighlight">\(f_{L1}(x_i) \cdot f_{L2}(x_i)\)</span></p>
+<p>Thus, a sample instance would only receive a predicted class label of 1 only when the predicted class label of that instance for both the models <span class="math notranslate nohighlight">\(f_{L1}(x_i)\)</span> and <span class="math notranslate nohighlight">\(f_{L2}(x_i)\)</span> is 1.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ICLL method <a class="reference internal" href="#iclltuning.iclltuning.predict" title="iclltuning.iclltuning.predict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict()</span></code></a> will not work if any of the following scenarios arise by clustering:</p>
+<div class="line-block">
+<div class="line"><strong>Scenario 1</strong>: No pure majority clusters are formed.</div>
+<div class="line"><strong>Scenario 2</strong>: No mixed clusters are formed.</div>
+<div class="line"><strong>Scenario 3</strong>: Only mixed clusters are formed.</div>
+</div>
+<p>A <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised instead if any of the above three scenarios is encountered.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>Pandas DataFrame</em><em> or </em><em>numpy.ndarray</em>) – The data matrix for which we want to get the predictions.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector containing the class labels for each sample. This would be an ndarray of shape (n_samples,)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="iclltuning.iclltuning.predict_proba">
+<span class="sig-name descname"><span class="pre">predict_proba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning.predict_proba"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning.predict_proba" title="Link to this definition"></a></dt>
+<dd><p>Predict probability estimates.</p>
+<p>This class method is only valid when both the models for Layer 1 and Layer 2 training have a valid <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_proba()</span></code> method.</p>
+<p>Let <span class="math notranslate nohighlight">\(f_{L1}(x_i)\)</span> and <span class="math notranslate nohighlight">\(f_{L2}(x_i)\)</span> denote the models trained in the layers L1 and L2, respectively. The the prediction by ICLL model is given by: <span class="math notranslate nohighlight">\(f_{L1}(x_i) \cdot f_{L2}(x_i)\)</span></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ICLL method <a class="reference internal" href="#iclltuning.iclltuning.predict_proba" title="iclltuning.iclltuning.predict_proba"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_proba()</span></code></a> will not work if any of the following scenarios arise by clustering:</p>
+<div class="line-block">
+<div class="line"><strong>Scenario 1</strong>: No pure majority clusters are formed.</div>
+<div class="line"><strong>Scenario 2</strong>: No mixed clusters are formed.</div>
+<div class="line"><strong>Scenario 3</strong>: Only mixed clusters are formed.</div>
+</div>
+<p>A <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised instead if any of the above three scenarios is encountered.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><strong>IMPORTANT</strong></div>
+</div>
+<p>The ICLL model will always return the final probabilities based upon the probabilites of the positive class retured by each layer’s estimator. So, to identify the probabilities returned by the positive class, the estimator corresponding to both the layers must necessarily have a <code class="xref py py-attr docutils literal notranslate"><span class="pre">classes_</span></code> attribute.</p>
+<p>If the method does not have a <code class="xref py py-attr docutils literal notranslate"><span class="pre">classes_</span></code> attribute, a <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised instead.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>Pandas DataFrame</em><em> or </em><em>numpy.ndarray</em>) – The data matrix for which we want to get the predictions.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability of the sample for belonging to the <strong>positive class</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="iclltuning.iclltuning.get_computed_dist_threshold">
+<span class="sig-name descname"><span class="pre">get_computed_dist_threshold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning.get_computed_dist_threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning.get_computed_dist_threshold" title="Link to this definition"></a></dt>
+<dd><p>Returns the log-transformed intra-cluster distance of <strong>µ + σ</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>log-transformed intra-cluster distance of <strong>µ + σ</strong></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="iclltuning.iclltuning.get_cluster_type_info">
+<span class="sig-name descname"><span class="pre">get_cluster_type_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning.get_cluster_type_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning.get_cluster_type_info" title="Link to this definition"></a></dt>
+<dd><p>Get the count of each type of cluster formed (pure majority, mixed and pure minority).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary where the key is the name of the type of cluster, and its corresponding value is the count of such clusters.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="iclltuning.iclltuning.get_layer_search_time">
+<span class="sig-name descname"><span class="pre">get_layer_search_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning.get_layer_search_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning.get_layer_search_time" title="Link to this definition"></a></dt>
+<dd><p>Pass ‘L1’ to parameter <code class="xref py py-attr docutils literal notranslate"><span class="pre">layer_name</span></code> to return the time taken for hyperparameter tuning on Layer 1 when a <code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object is provided. 
+Otherwise, it returns the time taken to train the <strong>Layer 1</strong> model.</p>
+<p>Pass ‘L2’ to parameter <code class="xref py py-attr docutils literal notranslate"><span class="pre">layer_name</span></code> to return the time taken for hyperparameter tuning on Layer 2 when a <code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object is provided. 
+Otherwise, it returns the time taken to train the <strong>Layer 2</strong> model.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ICLL method <a class="reference internal" href="#iclltuning.iclltuning.get_layer_search_time" title="iclltuning.iclltuning.get_layer_search_time"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_layer_search_time()</span></code></a> will not work if any of the following scenarios arise by clustering:</p>
+<div class="line-block">
+<div class="line"><strong>Scenario 1</strong>: No pure majority clusters are formed.</div>
+<div class="line"><strong>Scenario 2</strong>: No mixed clusters are formed.</div>
+<div class="line"><strong>Scenario 3</strong>: Only mixed clusters are formed.</div>
+</div>
+<p>A <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised instead if any of the above three scenarios is encountered.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>layer_name</strong> (<em>str</em>) – The name of the layer for which functionalities are to be accessed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Time measured in seconds.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="iclltuning.iclltuning.get_fitted_cv_layer_object">
+<span class="sig-name descname"><span class="pre">get_fitted_cv_layer_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning.get_fitted_cv_layer_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning.get_fitted_cv_layer_object" title="Link to this definition"></a></dt>
+<dd><p>Specify ‘L1’ or ‘L2’ to parameter <code class="xref py py-attr docutils literal notranslate"><span class="pre">layer_name</span></code> to retrieve the fitted object for that layer. If a GridSearchCV/RandomizedSearchCV object was provided, the fitted CV object is returned.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ICLL method <a class="reference internal" href="#iclltuning.iclltuning.get_fitted_cv_layer_object" title="iclltuning.iclltuning.get_fitted_cv_layer_object"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_fitted_cv_layer_object()</span></code></a> will not work if any of the following scenarios arise by clustering:</p>
+<div class="line-block">
+<div class="line"><strong>Scenario 1</strong>: No pure majority clusters are formed.</div>
+<div class="line"><strong>Scenario 2</strong>: No mixed clusters are formed.</div>
+<div class="line"><strong>Scenario 3</strong>: Only mixed clusters are formed.</div>
+</div>
+<p>A <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised instead if any of the above three scenarios is encountered.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>layer_name</strong> (<em>str</em>) – The name of the layer for which functionalities are to be accessed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fitted <code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object if provided at the time of object initialization.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="iclltuning.iclltuning.get_fitted_model_layer_object">
+<span class="sig-name descname"><span class="pre">get_fitted_model_layer_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/iclltuning.html#iclltuning.get_fitted_model_layer_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#iclltuning.iclltuning.get_fitted_model_layer_object" title="Link to this definition"></a></dt>
+<dd><p>Specify ‘L1’ or ‘L2’ for <code class="xref py py-attr docutils literal notranslate"><span class="pre">layer_name</span></code> to retrieve the fitted model from that layer. If the layer uses a <code class="xref py py-obj docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> object, the model from <code class="xref py py-attr docutils literal notranslate"><span class="pre">best_estimator_</span></code> is returned. Otherwise, the fitted model stored in <code class="xref py py-attr docutils literal notranslate"><span class="pre">model_l1</span></code> or <code class="xref py py-attr docutils literal notranslate"><span class="pre">model_l2</span></code> is returned.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ICLL method <a class="reference internal" href="#iclltuning.iclltuning.get_fitted_model_layer_object" title="iclltuning.iclltuning.get_fitted_model_layer_object"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_fitted_model_layer_object()</span></code></a> will not work if any of the following scenarios arise by clustering:</p>
+<div class="line-block">
+<div class="line"><strong>Scenario 1</strong>: No pure majority clusters are formed.</div>
+<div class="line"><strong>Scenario 2</strong>: No mixed clusters are formed.</div>
+<div class="line"><strong>Scenario 3</strong>: Only mixed clusters are formed.</div>
+</div>
+<p>A <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised instead if any of the above three scenarios is encountered.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>layer_name</strong> (<em>str</em>) – The name of the layer for which functionalities are to be accessed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fitted model</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Original_Licence.html" class="btn btn-neutral float-left" title="BSD 3-Clause License" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Tutorial.html" class="btn btn-neutral float-right" title="ICLL Working Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Vignesh Shanmugasundaram.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
